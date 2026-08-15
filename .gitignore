@@ -1,0 +1,8 @@
+# Build Directory
+build/
+
+#Binaries
+bin/
+
+#Visual Studio Cache/options Directory
+.vs/
