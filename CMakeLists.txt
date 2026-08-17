@@ -10,6 +10,9 @@ find_package(unofficial-sqlite3 CONFIG REQUIRED)
 
 add_executable(atlas
     src/main.cpp
+    src/db.cpp 
+    src/cli.cpp 
+    src/task.cpp
 )
 
 target_include_directories(atlas PRIVATE
