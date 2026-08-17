@@ -1,37 +1,31 @@
+#include "db.h"
+#include "cli.h"
 #include <iostream>
-#include <string>
+#include <filesystem>
 
-void add(std::string task) {
-	std::cout << "Adding task: " << task << "\n";
-	
+int main(int argc, char** argv) {
+    // DB lives next to the binary for now. Later this should probably live
+    // in a proper user data dir (~/.local/share/atlas/ on Linux).
+    const std::string db_path = "atlas.db";
+    const std::string schema_path = "../schema.sql"; // relative to build/ dir
+
+    try {
+        Database db(db_path);
+
+        // Applying schema on every run is harmless (CREATE TABLE IF NOT EXISTS),
+        // and means you never forget to initialize a fresh DB.
+        if (std::filesystem::exists(schema_path)) {
+            db.init_schema(schema_path);
+        }
+        else {
+            std::cerr << "Warning: schema.sql not found at " << schema_path
+                << " — assuming DB already initialized.\n";
+        }
+
+        return run_cli(argc, argv, db);
+    }
+    catch (const std::exception& e) {
+        std::cerr << "atlas error: " << e.what() << "\n";
+        return 1;
+    }
 }
-
-void help() {
-	std::cout << "ATLAS\nA Tiny Little Assistant System\n";
-	std::cout << "Usage: atlas <command>[options][arguments]\n";
-	std::cout << "I haven't decided more lol " << "\n";
-}
-
-int main(int argc, char* argv[]) {
-    if (argc == 1) {
-		help();
-	}
-	else if (argc >= 2) {
-		if( std::string(argv[1]) == "--help" || std::string(argv[1]) == "-h" ) {
-			help();
-		}
-		else if (std::string(argv[1]) == "--version" || std::string(argv[1]) == "-v" ) {
-			std::cout << "version 0.0.1\n";
-		}
-		else if (std::string(argv[1]) == "add") {
-			if (argc == 3) {
-				std::string task = argv[2];
-				add(task);
-			}
-			else std::cout << "Give me a task dumbass.\n";
-
-		}
-	}
-    return 0;
-}
-
