@@ -14,3 +14,9 @@ struct Task {
 // Small helper so `atlas list` has readable output.
 // Defined in task.cpp.
 std::string task_to_line(const Task& t);
+
+struct TaskEdit {
+    std::optional<std::string> title;
+    std::optional<int> priority;
+    std::optional<std::string> deadline;
+};

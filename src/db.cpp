@@ -120,3 +120,48 @@ std::optional<Task> Database::next_task() {
     if (pending.empty()) return std::nullopt;
     return pending.front();  // already ORDER BY priority, deadline
 }
+
+bool Database::edit_task(int id, const TaskEdit& edit) {
+    std::vector<std::string> clauses;
+    if (edit.title)    clauses.push_back("title = ?");
+    if (edit.priority) clauses.push_back("priority = ?");
+    if (edit.deadline) clauses.push_back("deadline = ?");
+    if (clauses.empty()) return false; // nothing to change
+
+    std::string sql = "UPDATE tasks SET ";
+    for (size_t i = 0; i < clauses.size(); ++i) {
+        sql += clauses[i];
+        if (i + 1 < clauses.size()) sql += ", ";
+    }
+    sql += " WHERE id = ?;";
+
+    sqlite3_stmt* stmt = nullptr;
+    if (sqlite3_prepare_v2(db_, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+        throw std::runtime_error("edit_task prepare failed: " + std::string(sqlite3_errmsg(db_)));
+    }
+
+    int idx = 1;
+    if (edit.title)    sqlite3_bind_text(stmt, idx++, edit.title->c_str(), -1, SQLITE_TRANSIENT);
+    if (edit.priority) sqlite3_bind_int(stmt, idx++, *edit.priority);
+    if (edit.deadline) sqlite3_bind_text(stmt, idx++, edit.deadline->c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, idx, id);
+
+    bool ok = sqlite3_step(stmt) == SQLITE_DONE;
+    int changed = sqlite3_changes(db_);
+    sqlite3_finalize(stmt);
+    return ok && changed > 0;
+}
+
+bool Database::delete_task(int id) {
+    const char* sql = "DELETE FROM tasks WHERE id = ?;";
+    sqlite3_stmt* stmt = nullptr;
+    if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        throw std::runtime_error("delete_task prepare failed: " + std::string(sqlite3_errmsg(db_)));
+    }
+    sqlite3_bind_int(stmt, 1, id);
+
+    bool ok = sqlite3_step(stmt) == SQLITE_DONE;
+    int changed = sqlite3_changes(db_);
+    sqlite3_finalize(stmt);
+    return ok && changed > 0;
+}

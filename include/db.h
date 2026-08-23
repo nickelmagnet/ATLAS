@@ -19,7 +19,9 @@ public:
     int add_task(const Task& t);              // returns new id
     std::vector<Task> list_tasks(const std::string& status_filter = "pending");
     bool mark_done(int id);
-    std::optional<Task> next_task();           // simplest priority/deadline pick for Phase 1
+    std::optional<Task> next_task();
+    bool edit_task(int id, const TaskEdit& edit);
+    bool delete_task(int id);
 
 private:
     sqlite3* db_ = nullptr;
