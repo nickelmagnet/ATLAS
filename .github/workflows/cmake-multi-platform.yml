@@ -45,8 +45,8 @@ jobs:
             c_compiler: cl
 
     steps:
-    - uses: lukka/run-vcpkg@v11
     - uses: actions/checkout@v4
+    - uses: lukka/run-vcpkg@v11
       with:
         vcpkgGitCommitId: 94a541197763a4f449a1b91478df48c0584a6256
 
